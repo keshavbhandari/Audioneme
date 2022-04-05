@@ -6,13 +6,13 @@ AI model for speech disorder detection
 1. Clone the repository:
 
 ```
-git clone https://github.com/oreillyp/voicebox.git
+git clone https://github.com/keshavbhandari/Audioneme.git
 ```
 
 2. We recommend working from a clean environment, e.g. using `conda`:
 
 ```
-conda create --name audioneme python=3.8
+conda create --name audioneme python=3.9
 source activate audioneme 
 ```
 
