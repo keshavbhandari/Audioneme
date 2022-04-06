@@ -124,7 +124,25 @@ def test(test_loader, model, device, epoch):
     print \
         (f"\nTest Epoch: {epoch} \tLoss: {test_running_loss / counter:.6f} \tAccuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.0f}%)\n")
 
-model = Audiomer()
+config = [1, 4, 8, 8, 16, 16, 32, 32, 64, 64]  # Audiomer S - 180K
+input_size = 8192 * 1
+model = Audiomer(
+        input_size=input_size,
+        config=config,
+        kernel_sizes=[5] * (len(config) - 1),
+        num_classes=1,
+        depth=1,
+        num_heads=2,
+        pool="cls",
+        mlp_dim=config[-1],
+        mlp_dropout=0.2,
+        use_residual=True,
+        dim_head=32,
+        expansion_factor=2,
+        use_attention=True,
+        use_se=True,
+        equal_strides=False
+    )
 optimizer = optim.Adam(model.parameters(), lr=0.002)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=320)
 swa_model = AveragedModel(model)
