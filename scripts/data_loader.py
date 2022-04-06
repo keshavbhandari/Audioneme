@@ -80,12 +80,12 @@ train_files, val_files, test_files = get_train_val_test_files(raw_wav_files)
 if load_saved_data:
     src = ZIP_LOC_DRIVE
     dst = ZIP_LOC
-    target_dst = '/content/data/'
+    # target_dst = '/content/data/'
     shutil.copy(src, dst)
 
     os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
     with zipfile.ZipFile(dst, 'r') as zip_ref:
-        zip_ref.extractall(target_dst)
+        zip_ref.extractall(DATA_DIR)
     # !rm / content / Speech_Disorder.zip
 
 if run_test:
