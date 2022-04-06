@@ -20,7 +20,7 @@ def get_likely_index(tensor):
     return tensor.argmax(dim=-1)
 
 
-def train(train_loader, model, optimizer, device, epoch, log_interval, accum_iter=1):
+def train(train_loader, model, device, epoch, log_interval, accum_iter=1):
     model.train()
     correct = 0
     train_running_loss = 0.0
@@ -142,7 +142,7 @@ model = Audiomer(
         use_attention=True,
         use_se=True,
         equal_strides=False
-    )
+    ).to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.002)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=320)
 swa_model = AveragedModel(model)
