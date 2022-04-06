@@ -4,6 +4,8 @@ import torch.optim as optim
 from torch.optim.swa_utils import AveragedModel, SWALR
 from tqdm import tqdm
 
+import matplotlib.pyplot as plt
+
 from src.models.audiomer import AudiomerClassification as Audiomer
 from src.training.early_stopping import EarlyStopping
 from scripts.data_loader import train_loader, val_loader, test_loader
@@ -170,3 +172,42 @@ with tqdm(total=n_epoch) as pbar:
         scheduler.step()
     best_model = torch.load("speech_command_recognition.pth")
     test(test_loader, best_model, device, epoch)
+
+
+# device = 'cpu'
+actuals = []
+predicted = []
+for i, (data, target) in enumerate(test_loader):
+    data = data.to(device)
+    target = target.to(device)
+    best_model = best_model.to(device)
+    output = best_model(data)
+    output = torch.sigmoid(output)
+    pred = torch.squeeze(output, -1)
+    predicted += pred.detach().cpu().numpy().tolist()
+    actuals += target.detach().cpu().numpy().tolist()
+
+
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+
+y_pred = [round(elem) for elem in predicted]
+print(classification_report(actuals, y_pred))
+
+cm1 = confusion_matrix(actuals, y_pred)
+print('Confusion Matrix : \n', cm1)
+
+total1=sum(sum(cm1))
+#####from confusion matrix calculate accuracy
+accuracy1=(cm1[0,0]+cm1[1,1])/total1
+print ('Accuracy : ', accuracy1)
+
+specificity1 = cm1[0,0]/(cm1[0,0]+cm1[0,1])
+print('specificity : ', specificity1 )
+
+sensitivity1 = cm1[1,1]/(cm1[1,0]+cm1[1,1])
+print('sensitivity : ', sensitivity1)
+
+plt.plot(train_loss);
+plt.plot(val_loss);
+plt.title("training and val loss");
