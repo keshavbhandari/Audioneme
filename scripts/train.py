@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.optim.swa_utils import AveragedModel, SWALR
 from tqdm import tqdm
 
-from src.models.audiomer import AudiomerClassification as model
+from src.models.audiomer import AudiomerClassification as Audiomer
 from src.training.early_stopping import EarlyStopping
 from scripts.data_loader import train_loader, val_loader, test_loader
 from configs.constants import *
@@ -124,7 +124,7 @@ def test(test_loader, model, device, epoch):
     print \
         (f"\nTest Epoch: {epoch} \tLoss: {test_running_loss / counter:.6f} \tAccuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.0f}%)\n")
 
-
+model = Audiomer()
 optimizer = optim.Adam(model.parameters(), lr=0.002)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=320)
 swa_model = AveragedModel(model)
