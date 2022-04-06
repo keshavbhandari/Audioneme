@@ -6,7 +6,7 @@ RAW_DIR = '/content/drive/MyDrive/Research/Speech_Disorder/Speech Exemplars and 
 ZIP_LOC_DRIVE = '/content/drive/MyDrive/Research/Speech_Disorder/Saved/Speech_Disorder.zip'
 ZIP_LOC = '/content/Speech_Disorder.zip'
 CACHE_DIR = Path(__file__).parent.parent / 'cache'
-DATA_DIR = Path(__file__).parent.parent / 'data'
+DATA_DIR = Path('.').resolve() / 'data'
 
 batch_size = 16
 new_sample_rate = 8192  # 16000

@@ -83,7 +83,7 @@ if load_saved_data:
     target_dst = '/content/data/'
     shutil.copy(src, dst)
 
-    os.makedirs(os.path.dirname('data'), exist_ok=True)
+    os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
     with zipfile.ZipFile(dst, 'r') as zip_ref:
         zip_ref.extractall(target_dst)
     # !rm / content / Speech_Disorder.zip
@@ -93,9 +93,9 @@ if run_test:
     val_files = val_files[0:10]
     test_files = test_files[0:10]
 
-train_set = SpeechDisorderDataset(files = train_files, encoding_lookup = task_numbered, split = 'train', ext = 'wav', cache_dir = 'data')
-val_set = SpeechDisorderDataset(files = val_files, encoding_lookup = task_numbered, split = 'val', ext = 'wav', cache_dir = 'data')
-test_set = SpeechDisorderDataset(files = test_files, encoding_lookup = task_numbered, split = 'test', ext = 'wav', cache_dir = 'data')
+train_set = SpeechDisorderDataset(files = train_files, encoding_lookup = task_numbered, split = 'train', ext = 'wav', cache_dir = DATA_DIR)
+val_set = SpeechDisorderDataset(files = val_files, encoding_lookup = task_numbered, split = 'val', ext = 'wav', cache_dir = DATA_DIR)
+test_set = SpeechDisorderDataset(files = test_files, encoding_lookup = task_numbered, split = 'test', ext = 'wav', cache_dir = DATA_DIR)
 
 if copy_files_as_zip:
     make_zipfile(output_filename = 'Speech_Disorder.zip', source_dir = dst)
