@@ -76,7 +76,7 @@ raw_wav_files = get_audio_files(wd = RAW_DIR)
 task_numbered, numbered_task = get_tasks_encoded(raw_wav_files)
 train_files, val_files, test_files = get_train_val_test_files(raw_wav_files)
 
-# Add if condition here for whether data exists in drive
+# Load saved zip file if set to True
 if load_saved_data:
     src = ZIP_LOC_DRIVE
     dst = ZIP_LOC
