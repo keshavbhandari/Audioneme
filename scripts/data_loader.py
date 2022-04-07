@@ -24,11 +24,9 @@ from src.utils.data import get_tasks_encoded, get_train_val_test_files
 from src.utils.data import SpeechDisorderDataset
 from configs.constants import *
 
-new_sample_rate = 8192
-
 train_transform = ComposeMany(
     [
-        torchaudio.transforms.Resample(orig_freq=16000, new_freq=new_sample_rate),
+        torchaudio.transforms.Resample(orig_freq=orig_sample_rate, new_freq=new_sample_rate),
         RandomApply([PolarityInversion()], p=0.8),
         RandomApply([Noise()], p=0.25),
         RandomApply([Gain()], p=0.3),
@@ -93,9 +91,9 @@ if run_test:
     val_files = val_files[0:10]
     test_files = test_files[0:10]
 
-train_set = SpeechDisorderDataset(files = train_files, encoding_lookup = task_numbered, split = 'train', ext = 'wav', cache_dir = DATA_DIR)
-val_set = SpeechDisorderDataset(files = val_files, encoding_lookup = task_numbered, split = 'val', ext = 'wav', cache_dir = DATA_DIR)
-test_set = SpeechDisorderDataset(files = test_files, encoding_lookup = task_numbered, split = 'test', ext = 'wav', cache_dir = DATA_DIR)
+train_set = SpeechDisorderDataset(files = train_files, encoding_lookup = task_numbered, split = 'train', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)
+val_set = SpeechDisorderDataset(files = val_files, encoding_lookup = task_numbered, split = 'val', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)
+test_set = SpeechDisorderDataset(files = test_files, encoding_lookup = task_numbered, split = 'test', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)
 
 if copy_files_as_zip:
     make_zipfile(output_filename = 'Speech_Disorder.zip', source_dir = dst)

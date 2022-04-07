@@ -9,7 +9,8 @@ CACHE_DIR = Path(__file__).parent.parent / 'cache'
 DATA_DIR = Path('.').resolve() / 'data'
 
 batch_size = 16
-new_sample_rate = 8192  # 16000
+orig_sample_rate = 22050
+new_sample_rate = 16000
 
 load_saved_data = True
 copy_files_as_zip = False
