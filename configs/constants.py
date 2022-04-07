@@ -5,12 +5,19 @@ import torch
 RAW_DIR = '/content/drive/MyDrive/Research/Speech_Disorder/Speech Exemplars and Evaluation Database/'
 ZIP_LOC_DRIVE = '/content/drive/MyDrive/Research/Speech_Disorder/Saved/Speech_Disorder.zip'
 ZIP_LOC = '/content/Speech_Disorder.zip'
+PRETRAINED_ResnetSE34V2 = '/content/Audioneme/src/models/resnetse34v2/Pretrained_Weights/resnetse34v2.pt'
 CACHE_DIR = Path(__file__).parent.parent / 'cache'
 DATA_DIR = Path('.').resolve() / 'data'
 
 batch_size = 16
 orig_sample_rate = 22050
 new_sample_rate = 16000
+
+model_type = "resnetse34v2"
+
+log_interval = 100
+n_epoch = 40
+early_stopping_rounds = 3
 
 load_saved_data = True
 copy_files_as_zip = False
@@ -23,6 +30,3 @@ if device == "cuda":
 else:
     num_workers = 0
     pin_memory = False
-
-log_interval = 100
-n_epoch = 40

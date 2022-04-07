@@ -5,10 +5,14 @@ from torch.optim.swa_utils import AveragedModel, SWALR
 from tqdm import tqdm
 
 import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 
 from src.models.audiomer import AudiomerClassification as Audiomer
 from src.training.early_stopping import EarlyStopping
 from scripts.data_loader import train_loader, val_loader, test_loader
+from src.models.resnetse34v2.resnetse34v2.resnetse34v2 import ResNetSE34V2
+from src.models.resnetse34v2.resnetse34v2.resnetse34v2_classifier import ResNetSE34V2_Classification
 from configs.constants import *
 
 
@@ -126,32 +130,40 @@ def test(test_loader, model, device, epoch):
     print \
         (f"\nTest Epoch: {epoch} \tLoss: {test_running_loss / counter:.6f} \tAccuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.0f}%)\n")
 
-config = [1, 4, 8, 8, 16, 16, 32, 32, 64, 64]  # Audiomer S - 180K
-input_size = 8192 * 1
-model = Audiomer(
-        input_size=input_size,
-        config=config,
-        kernel_sizes=[5] * (len(config) - 1),
-        num_classes=1,
-        depth=1,
-        num_heads=2,
-        pool="cls",
-        mlp_dim=config[-1],
-        mlp_dropout=0.2,
-        use_residual=True,
-        dim_head=32,
-        expansion_factor=2,
-        use_attention=True,
-        use_se=True,
-        equal_strides=False
-    ).to(device)
+if model_type == "audiomer":
+    config = [1, 4, 8, 8, 16, 16, 32, 32, 64, 64]  # Audiomer S - 180K
+    input_size = 8192
+    model = Audiomer(
+            input_size=input_size,
+            config=config,
+            kernel_sizes=[5] * (len(config) - 1),
+            num_classes=1,
+            depth=1,
+            num_heads=2,
+            pool="cls",
+            mlp_dim=config[-1],
+            mlp_dropout=0.2,
+            use_residual=True,
+            dim_head=32,
+            expansion_factor=2,
+            use_attention=True,
+            use_se=True,
+            equal_strides=False
+        ).to(device)
+
+else:
+    pretrained_model = ResNetSE34V2(n_mels=64)
+    pretrained_model.load_state_dict(torch.load(PRETRAINED_ResnetSE34V2))
+    model = ResNetSE34V2_Classification(pretrained_model).to(device)
+
+
 optimizer = optim.Adam(model.parameters(), lr=0.002)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=320)
 swa_model = AveragedModel(model)
 swa_scheduler = SWALR(optimizer, swa_lr=0.05)
 
 print('INFO: Initializing early stopping')
-early_stopping = EarlyStopping(patience=3)
+early_stopping = EarlyStopping(patience=early_stopping_rounds)
 
 pbar_update = round(1 / (len(train_loader) + len(val_loader)), 4)
 train_loss, val_loss, test_loss = [], [], []
@@ -187,9 +199,6 @@ for i, (data, target) in enumerate(test_loader):
     predicted += pred.detach().cpu().numpy().tolist()
     actuals += target.detach().cpu().numpy().tolist()
 
-
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
 
 y_pred = [round(elem) for elem in predicted]
 print(classification_report(actuals, y_pred))
