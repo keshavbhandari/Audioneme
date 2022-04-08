@@ -94,7 +94,7 @@ val_set = SpeechDisorderDataset(files = val_files, encoding_lookup = task_number
 test_set = SpeechDisorderDataset(files = test_files, encoding_lookup = task_numbered, split = 'test', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)
 
 if copy_files_as_zip:
-    make_zipfile(output_filename = 'Speech_Disorder.zip', source_dir = dst)
+    make_zipfile(output_filename = 'Speech_Disorder.zip', source_dir = DATA_DIR)
     shutil.copy(dst + 'Speech_Disorder.zip', src)
 
 
