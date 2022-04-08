@@ -4,7 +4,7 @@ import torch
 # Static directories
 RAW_DIR = '/content/drive/MyDrive/Research/Speech_Disorder/Speech Exemplars and Evaluation Database/'
 ZIP_LOC_DRIVE = '/content/drive/MyDrive/Research/Speech_Disorder/Saved/Speech_Disorder.zip'
-ZIP_LOC = '/content/Audioneme/Speech_Disorder.zip'
+ZIP_LOC = '/content/Audioneme/'
 PRETRAINED_ResnetSE34V2 = '/content/Audioneme/src/models/resnetse34v2/Pretrained_Weights/resnetse34v2.pt'
 CACHE_DIR = Path(__file__).parent.parent / 'cache'
 DATA_DIR = Path('.').resolve() / 'data'
