@@ -80,7 +80,7 @@ dst = ZIP_LOC
 if load_saved_data:
     shutil.copy(src, dst)
     os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
-    with zipfile.ZipFile(dst, 'r') as zip_ref:
+    with zipfile.ZipFile(dst + 'Speech_Disorder.zip', 'r') as zip_ref:
         zip_ref.extractall(DATA_DIR)
     # !rm / content / Speech_Disorder.zip
 
