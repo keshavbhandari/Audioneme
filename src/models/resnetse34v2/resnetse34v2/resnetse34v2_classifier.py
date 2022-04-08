@@ -17,6 +17,7 @@ class ResNetSE34V2_Classification(nn.Module):
         )
 
     def forward(self, x):
+        x = x.squeeze(1)
         x = self.encoder(x)
         x = self.classifier(x)
         return x
