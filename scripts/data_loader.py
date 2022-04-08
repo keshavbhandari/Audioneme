@@ -75,12 +75,10 @@ task_numbered, numbered_task = get_tasks_encoded(raw_wav_files)
 train_files, val_files, test_files = get_train_val_test_files(raw_wav_files)
 
 # Load saved zip file if set to True
+src = ZIP_LOC_DRIVE
+dst = ZIP_LOC
 if load_saved_data:
-    src = ZIP_LOC_DRIVE
-    dst = ZIP_LOC
-    # target_dst = '/content/data/'
     shutil.copy(src, dst)
-
     os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
     with zipfile.ZipFile(dst, 'r') as zip_ref:
         zip_ref.extractall(DATA_DIR)
