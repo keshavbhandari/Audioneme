@@ -14,6 +14,7 @@ orig_sample_rate = 22050
 new_sample_rate = 16000
 
 model_type = "resnetse34v2"
+n_mels = 128
 
 log_interval = 100
 n_epoch = 40
