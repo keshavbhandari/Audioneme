@@ -95,7 +95,7 @@ test_set = SpeechDisorderDataset(files = test_files, encoding_lookup = task_numb
 
 if copy_files_as_zip:
     make_zipfile(output_filename = 'Speech_Disorder.zip', source_dir = dst)
-    shutil.copy(dst, src)
+    shutil.copy(dst + 'Speech_Disorder.zip', src)
 
 
 train_loader = torch.utils.data.DataLoader(
