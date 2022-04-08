@@ -39,7 +39,7 @@ train_transform = ComposeMany(
 
 test_transform = ComposeMany(
     [
-        torchaudio.transforms.Resample(orig_freq=16000, new_freq=new_sample_rate)
+        torchaudio.transforms.Resample(orig_freq=orig_sample_rate, new_freq=new_sample_rate)
     ],
     1
 )
