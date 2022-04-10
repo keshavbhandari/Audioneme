@@ -1,4 +1,3 @@
-import torch
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim.swa_utils import AveragedModel, SWALR
@@ -9,10 +8,10 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 
 from src.models.audiomer import AudiomerClassification as Audiomer
-from src.training.early_stopping import EarlyStopping
 from scripts.data_loader import train_loader, val_loader, test_loader
-from src.models.resnetse34v2.resnetse34v2.resnetse34v2 import ResNetSE34V2
-from src.models.resnetse34v2.resnetse34v2.resnetse34v2_classifier import ResNetSE34V2_Classification
+from src.models.resnetse34v2.resnetse34v2 import ResNetSE34V2
+from src.models.resnetse34v2.resnetse34v2_classifier import ResNetSE34V2_Classification
+from src.training.training_functions import count_parameters, EarlyStopping
 from configs.constants import *
 
 
@@ -156,6 +155,7 @@ else:
     pretrained_model.load_state_dict(torch.load(PRETRAINED_ResnetSE34V2))
     model = ResNetSE34V2_Classification(pretrained_model).to(device)
 
+count_parameters(model)
 
 optimizer = optim.Adam(model.parameters(), lr=0.002)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=320)

@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from src.utils.properties import DataProperties
-from src.models.resnetse34v2.resnetse34v2.resnet_blocks import (
+from src.models.resnetse34v2.resnet_blocks import (
     SEBasicBlock,
     SEBottleneck
 )
