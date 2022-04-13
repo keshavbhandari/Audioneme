@@ -155,6 +155,10 @@ else:
     pretrained_model.load_state_dict(torch.load(PRETRAINED_ResnetSE34V2))
     model = ResNetSE34V2_Classification(pretrained_model).to(device)
 
+# for n, param in enumerate(model.parameters()):
+#     if n < 150:
+#         param.requires_grad = False
+
 count_parameters(model)
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
@@ -173,7 +177,10 @@ with tqdm(total=n_epoch) as pbar:
         train(train_loader, model, device, epoch, log_interval, accum_iter=2)
         validate(val_loader, model, device, epoch)
         # Save Best Model
-        if len(val_loss) > 1:
+        if epoch == 1:
+            print('Saving model...')
+            torch.save(model, "speech_command_recognition.pth")
+        else:
             if val_loss[-1] < min(val_loss[:-1]):
                 print('Saving model...')
                 torch.save(model, "speech_command_recognition.pth")
