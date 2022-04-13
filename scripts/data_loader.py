@@ -12,7 +12,6 @@ from torchaudio_augmentations import (
     Reverb,
 )
 
-import torch
 from functools import partial
 import shutil
 import os
@@ -20,7 +19,7 @@ import zipfile
 
 from src.utils.filesystem import make_zipfile
 from src.utils.filesystem import get_audio_files
-from src.utils.data import get_tasks_encoded, get_train_val_test_files
+from src.utils.data import get_tasks_encoded, get_utterance_files, get_speaker_files
 from src.utils.data import SpeechDisorderDataset
 from configs.constants import *
 
@@ -69,10 +68,13 @@ def collate_fn(batch, dataset, augmentation):
 
 
 
-
 raw_wav_files = get_audio_files(wd = RAW_DIR)
 task_numbered, numbered_task = get_tasks_encoded(raw_wav_files)
-train_files, val_files, test_files = get_train_val_test_files(raw_wav_files)
+if build_speaker_level_dataset:
+    train_files, val_files, test_files = get_speaker_files(raw_wav_files)
+else:
+    train_files, val_files, test_files = get_utterance_files(raw_wav_files)
+
 
 # Load saved zip file if set to True
 src = ZIP_LOC_DRIVE

@@ -9,6 +9,8 @@ PRETRAINED_ResnetSE34V2 = '/content/Audioneme/trained_models/resnetse34v2.pt'
 CACHE_DIR = Path(__file__).parent.parent / 'cache'
 DATA_DIR = Path('.').resolve() / 'data'
 
+build_speaker_level_dataset = True
+
 batch_size = 16
 orig_sample_rate = 22050
 new_sample_rate = 16000

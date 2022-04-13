@@ -10,7 +10,7 @@ import math
 from src.utils.filesystem import ensure_dir
 
 
-def get_train_val_test_files(files):
+def get_utterance_files(files):
     random.shuffle(files)
     train_size, val_size = int(0.8 * len(files)), int(0.1 * len(files))
 
@@ -20,6 +20,49 @@ def get_train_val_test_files(files):
 
     print(f'Train Size: {len(train)}, Val Size: {len(validate)}, Test Size: {len(test)}')
 
+    return train, validate, test
+
+
+def get_digits(string):
+    digits = []
+    for e in string:
+        if e.isdigit():
+            digits.append(e)
+        else:
+            break
+
+    return int(''.join(digits))
+
+
+def get_speaker_files(files):
+    utterance_dict = dict()
+
+    for n, i in enumerate(files):
+        try:
+            a = i.lower().split('/')[-1].strip('.wav').split('-')[1]
+            utterance_dict[i] = get_digits(a)
+        except:
+            print(n)
+
+    speakers = list(set(utterance_dict.values()))
+    random.shuffle(speakers)
+    train_size, val_size = int(0.8 * len(speakers)), int(0.1 * len(speakers))
+
+    train_speakers = speakers[0: train_size]
+    validate_speakers = speakers[train_size: train_size + val_size]
+    test_speakers = speakers[train_size + val_size:]
+
+    train, validate, test = [], [], []
+
+    for key, val in utterance_dict.items():
+        if val in train_speakers:
+            train.append(key)
+        elif val in validate_speakers:
+            validate.append(key)
+        else:
+            test.append(key)
+
+    print(f'Train Size: {len(train)}, Val Size: {len(validate)}, Test Size: {len(test)}')
     return train, validate, test
 
 
