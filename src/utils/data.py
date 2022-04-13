@@ -42,7 +42,7 @@ def get_speaker_files(files):
             a = i.lower().split('/')[-1].strip('.wav').split('-')[1]
             utterance_dict[i] = get_digits(a)
         except:
-            print(n)
+            print("Files skipped", n, i)
 
     speakers = list(set(utterance_dict.values()))
     random.shuffle(speakers)
