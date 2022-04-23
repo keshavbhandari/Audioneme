@@ -75,21 +75,22 @@ if build_speaker_level_dataset:
 else:
     train_files, val_files, test_files = get_utterance_files(raw_wav_files)
 
+if run_test:
+    train_files = train_files[0:100]
+    val_files = val_files[0:10]
+    test_files = test_files[0:10]
 
 # Load saved zip file if set to True
 src = ZIP_LOC_DRIVE
 dst = ZIP_LOC
 if load_saved_data:
-    shutil.copy(src, dst)
-    os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
-    with zipfile.ZipFile(dst + 'Speech_Disorder.zip', 'r') as zip_ref:
-        zip_ref.extractall(dst)
-    # !rm / content / Speech_Disorder.zip
-
-if run_test:
-    train_files = train_files[0:100]
-    val_files = val_files[0:10]
-    test_files = test_files[0:10]
+    data_dir_exists = os.path.isdir(DATA_DIR)
+    if data_dir_exists == False:
+        shutil.copy(src, dst)
+        os.makedirs(os.path.dirname(DATA_DIR), exist_ok=True)
+        with zipfile.ZipFile(dst + 'Speech_Disorder.zip', 'r') as zip_ref:
+            zip_ref.extractall(dst)
+        # !rm / content / Speech_Disorder.zip
 
 train_set = SpeechDisorderDataset(files = train_files, encoding_lookup = task_numbered, split = 'train', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)
 val_set = SpeechDisorderDataset(files = val_files, encoding_lookup = task_numbered, split = 'val', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)

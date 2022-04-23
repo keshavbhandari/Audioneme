@@ -163,8 +163,6 @@ count_parameters(model)
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=320)
-# swa_model = AveragedModel(model)
-# swa_scheduler = SWALR(optimizer, swa_lr=0.05)
 
 print('INFO: Initializing early stopping')
 early_stopping = EarlyStopping(patience=early_stopping_rounds)

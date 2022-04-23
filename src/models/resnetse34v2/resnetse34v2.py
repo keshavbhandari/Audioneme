@@ -11,6 +11,7 @@ from src.models.resnetse34v2.resnet_blocks import (
 
 from typing import Union, Type, Iterable
 
+
 ################################################################################
 # ResNetSE34V2 spectrogram convolutional model for speaker verification
 ################################################################################
@@ -45,13 +46,16 @@ class ResNetSE34V2(nn.Module):
     ResNetSE34V2 model proposed in Heo et al. (arXiv: 2009.14153). Code adapted
     from https://github.com/clovaai/voxceleb_trainer.
     """
+
     def __init__(self,
                  block: Type[Union[SEBasicBlock, SEBottleneck]] = SEBasicBlock,
                  layers: Iterable[int] = (3, 4, 6, 3),
                  num_filters: Iterable[int] = (32, 64, 128, 256),
                  nOut: int = 512,
                  encoder_type: str = 'ASP',
-                 n_mels: int = 64,
+                 spec_type='mfcc',
+                 n_bins: int = 64,
+                 dropout: float = 0.2,
                  log_input: bool = True):
         """
         Squeeze-and-Excitation ResNet architecture for speaker embedding.
@@ -70,7 +74,9 @@ class ResNetSE34V2(nn.Module):
                              utterance-level features. Must be one of "SAP"
                              (self-attentive pooling) or "ASP" (attentive
                              statistics pooling)
-        :param n_mels: mel bins for spectrogram
+        :param spec_type: mfcc or mel_spectrogram
+        :param n_bins: mel bins for spectrogram or mfcc coefficients for mfcc
+        :param dropout: dropout after spectrogram
         :param log_input: if True, apply log to spectrogram
         """
         super().__init__()
@@ -86,8 +92,10 @@ class ResNetSE34V2(nn.Module):
 
         self.inplanes = num_filters[0]
         self.encoder_type = encoder_type
-        self.n_mels = n_mels
+        self.n_bins = n_bins
         self.log_input = log_input
+        self.spec_type = spec_type
+        self.dropout = nn.Dropout(p=dropout)
 
         # prior to SE layers, input spectrogram is passed through a "vanilla"
         # convolutional layer
@@ -121,19 +129,31 @@ class ResNetSE34V2(nn.Module):
             stride=(2, 2)
         )
 
-        self.instancenorm = nn.InstanceNorm1d(n_mels)
-        self.torchfb = torch.nn.Sequential(
-            PreEmphasis(),
-            torchaudio.transforms.MelSpectrogram(
+        if self.spec_type == 'mfcc':
+            self.spectrogram = torchaudio.transforms.MFCC(
+                sample_rate=16000,
+                n_mfcc=n_bins,
+                dct_type=2,
+                norm='ortho',
+                log_mels=False,
+                melkwargs=None)
+        else:
+            self.spectrogram = torchaudio.transforms.MelSpectrogram(
                 sample_rate=16000,
                 n_fft=512,
                 win_length=400,
                 hop_length=160,
                 window_fn=torch.hamming_window,
-                n_mels=n_mels)
+                n_mels=n_bins)
+
+        self.instancenorm = nn.InstanceNorm1d(n_bins)
+        self.torchfb = torch.nn.Sequential(
+            PreEmphasis(),
+            self.spectrogram,
+            self.dropout
         )
 
-        outmap_size = int(self.n_mels/8)
+        outmap_size = int(self.n_bins / 8)
 
         # attention block: collapse and restore channel dimension of feature
         # maps through 1x1 convolutions, then pass frame/time dimension through
@@ -196,8 +216,8 @@ class ResNetSE34V2(nn.Module):
 
     def forward(self, x: torch.Tensor):
 
-        x = self.torchfb(x)+1e-6
-        if self.log_input:
+        x = self.torchfb(x) + 1e-6
+        if self.log_input and self.spec_type != 'mfcc':
             x = x.log()
         x = self.instancenorm(x).unsqueeze(1)
 
@@ -228,7 +248,7 @@ class ResNetSE34V2(nn.Module):
             # compute standard deviation from weighted means
             sg = torch.sqrt(
                 (
-                        torch.sum((x**2) * w, dim=2) - mu**2
+                        torch.sum((x ** 2) * w, dim=2) - mu ** 2
                 ).clamp(min=1e-5)
             )  # (n_batch, outmap_size)
             x = torch.cat((mu, sg), 1)  # (n_batch, 2 * outmap_size)
