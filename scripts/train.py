@@ -151,8 +151,8 @@ if model_type == "audiomer":
         ).to(device)
 
 else:
-    pretrained_model = ResNetSE34V2(n_mels=n_mels)
-    pretrained_model.load_state_dict(torch.load(PRETRAINED_ResnetSE34V2))
+    pretrained_model = ResNetSE34V2(n_bins=n_bins)
+    # pretrained_model.load_state_dict(torch.load(PRETRAINED_ResnetSE34V2))
     model = ResNetSE34V2_Classification(pretrained_model).to(device)
 
 # for n, param in enumerate(model.parameters()):
