@@ -43,32 +43,33 @@ test_transform = ComposeMany(
     1
 )
 
-def collate_fn(batch, dataset, augmentation):
 
+def collate_fn(batch, dataset, augmentation):
     # A data tuple has the form:
     # waveform, utterance_type, label
 
-    tensors, targets = [], []
+    tensors, file_tensor, targets = [], [], []
     if dataset == "train" and augmentation == True:
         t = train_transform
     else:
         t = test_transform
 
     # Gather in lists, and encode labels as indices
-    for [waveform, _], label in batch:
+    for [waveform, encoded_file], label in batch:
         tensors += [t(waveform).squeeze(1)]
         targets += [label]
+        file_tensor += [encoded_file]
 
     # Group the list of tensors into a batched tensor
     # tensors = pad_sequence(tensors)
     tensors = torch.stack(tensors)
     targets = torch.stack(targets)
+    file_tensor = torch.stack(file_tensor)
 
-    return tensors, targets
+    return (tensors, file_tensor), targets
 
 
-
-raw_wav_files = get_audio_files(wd = RAW_DIR)
+raw_wav_files = get_audio_files(wd=RAW_DIR)
 task_numbered, numbered_task = get_tasks_encoded(raw_wav_files)
 if build_speaker_level_dataset:
     train_files, val_files, test_files = get_speaker_files(raw_wav_files)
@@ -92,14 +93,16 @@ if load_saved_data:
             zip_ref.extractall(dst)
         # !rm / content / Speech_Disorder.zip
 
-train_set = SpeechDisorderDataset(files = train_files, encoding_lookup = task_numbered, split = 'train', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)
-val_set = SpeechDisorderDataset(files = val_files, encoding_lookup = task_numbered, split = 'val', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)
-test_set = SpeechDisorderDataset(files = test_files, encoding_lookup = task_numbered, split = 'test', sample_rate = orig_sample_rate, ext = 'wav', cache_dir = DATA_DIR)
+train_set = SpeechDisorderDataset(files=train_files, encoding_lookup=task_numbered, split='train',
+                                  sample_rate=orig_sample_rate, ext='wav', cache_dir=DATA_DIR)
+val_set = SpeechDisorderDataset(files=val_files, encoding_lookup=task_numbered, split='val',
+                                sample_rate=orig_sample_rate, ext='wav', cache_dir=DATA_DIR)
+test_set = SpeechDisorderDataset(files=test_files, encoding_lookup=task_numbered, split='test',
+                                 sample_rate=orig_sample_rate, ext='wav', cache_dir=DATA_DIR)
 
 if copy_files_as_zip:
-    make_zipfile(output_filename = 'Speech_Disorder.zip', source_dir = DATA_DIR)
+    make_zipfile(output_filename='Speech_Disorder.zip', source_dir=DATA_DIR)
     shutil.copy(dst + 'Speech_Disorder.zip', src)
-
 
 train_loader = torch.utils.data.DataLoader(
     train_set,

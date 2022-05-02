@@ -22,13 +22,15 @@ class AudiomerClassification(nn.Module):
         )
 
     def forward(self, x):
+        file = x[0]
+        x = x[1]
         x = self.encoder(x)
         if self.pool == "mean":
             x = x.mean(dim=2)
         else:
             x = x[:, :, 0]
         x = self.classifier(x)
-        return x
+        return x, file
 
 
 if __name__ == "__main__":

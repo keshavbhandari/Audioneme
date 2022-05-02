@@ -9,6 +9,7 @@ from sklearn.metrics import confusion_matrix
 
 from src.models.audiomer import AudiomerClassification as Audiomer
 from scripts.data_loader import train_loader, val_loader, test_loader
+from scripts.data_loader import task_numbered, numbered_task
 from src.models.resnetse34v2.resnetse34v2 import ResNetSE34V2
 from src.models.resnetse34v2.resnetse34v2_classifier import ResNetSE34V2_Classification
 from src.training.training_functions import count_parameters, EarlyStopping
@@ -37,7 +38,7 @@ def train(train_loader, model, device, epoch, log_interval, accum_iter=1):
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output = model(data)
+        output, _ = model(data)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -81,7 +82,7 @@ def validate(val_loader, model, device, epoch):
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output = model(data)
+        output, _ = model(data)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -111,7 +112,7 @@ def test(test_loader, model, device, epoch):
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output = model(data)
+        output, _ = model(data)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -194,15 +195,17 @@ with tqdm(total=n_epoch) as pbar:
 # device = 'cpu'
 actuals = []
 predicted = []
+filename = []
 for i, (data, target) in enumerate(test_loader):
     data = data.to(device)
     target = target.to(device)
     best_model = best_model.to(device)
-    output = best_model(data)
+    output, file = best_model(data)
     output = torch.sigmoid(output)
     pred = torch.squeeze(output, -1)
     predicted += pred.detach().cpu().numpy().tolist()
     actuals += target.detach().cpu().numpy().tolist()
+    filename.append(file)
 
 
 y_pred = [round(elem) for elem in predicted]
