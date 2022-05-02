@@ -6,6 +6,8 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+import pandas as pd
+import numpy as np
 
 from src.models.audiomer import AudiomerClassification as Audiomer
 from scripts.data_loader import train_loader, val_loader, test_loader
@@ -195,6 +197,11 @@ with tqdm(total=n_epoch) as pbar:
     test(test_loader, best_model, device, epoch)
 
 
+tokenizer_path = DATA_DIR / 'test/tokenizer.pt'
+tokenizer = torch.load(tokenizer_path)
+encoder_tokenizer = tokenizer['encoder']
+decoder_tokenizer = tokenizer['decoder']
+
 # device = 'cpu'
 actuals = []
 predicted = []
@@ -210,7 +217,17 @@ for i, (data, target) in enumerate(test_loader):
     predicted += pred.detach().cpu().numpy().tolist()
     actuals += target.detach().cpu().numpy().tolist()
     filename.append(file)
+filename = [decoder_tokenizer[str(file.detach().numpy().tolist())] for file in filename[0]]
 
+results = pd.DataFrame({
+    'filename': filename,
+    'actuals': actuals,
+    'predicted': predicted
+})
+results['participant'] = results['filename'].str.split('-').str[1].str.extract('([0-9]+)', expand=False)
+results['predicted_disorder'] = np.where(results['predicted']>0.5, 1, 0)
+aggregated = results.groupby(by=['participant', 'actuals']).agg({'predicted_disorder': ['sum', 'count'], 'predicted': ['mean', 'median', 'min', 'max', 'std']})
+print(aggregated)
 
 y_pred = [round(elem) for elem in predicted]
 print(classification_report(actuals, y_pred))

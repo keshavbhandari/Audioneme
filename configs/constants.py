@@ -19,7 +19,7 @@ model_type = "resnetse34v2"
 n_bins = 64
 
 log_interval = 100
-n_epoch = 40
+n_epoch = 10
 early_stopping_rounds = 3
 
 load_saved_data = True

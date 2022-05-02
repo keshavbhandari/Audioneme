@@ -68,7 +68,7 @@ def get_speaker_files(files):
 
 def get_task_stringmatch(string):
     # s = string.lower().split('/')[-1].strip('.wav').split('-')[-1].split(' ')[0].split('.')[0].split('_')[-1]
-    s = string.lower().split('/')[-1].strip('.wav')
+    s = string.lower()
     return s
 
 
@@ -175,7 +175,7 @@ class SpeechDisorderDataset:
         torch.save(tx, path.join(self.cache_dir, 'tx.pt'))
         torch.save(tz, path.join(self.cache_dir, 'tz.pt'))
         torch.save(ty, path.join(self.cache_dir, 'ty.pt'))
-        torch.save([self.encoding_lookup, self.decoding_lookup], path.join(self.cache_dir, 'tokenizer.pt'))
+        torch.save({'encoder': self.encoding_lookup, 'decoder': self.decoding_lookup}, path.join(self.cache_dir, 'tokenizer.pt'))
 
         return [tx, tz], ty
 
