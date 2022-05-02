@@ -11,7 +11,7 @@ import numpy as np
 
 from src.models.audiomer import AudiomerClassification as Audiomer
 from scripts.data_loader import train_loader, val_loader, test_loader
-from scripts.data_loader import task_numbered, numbered_task
+from src.utils.data import get_digits
 from src.models.resnetse34v2.resnetse34v2 import ResNetSE34V2
 from src.models.resnetse34v2.resnetse34v2_classifier import ResNetSE34V2_Classification
 from src.training.training_functions import count_parameters, EarlyStopping
@@ -217,16 +217,19 @@ for i, (data, target) in enumerate(test_loader):
     predicted += pred.detach().cpu().numpy().tolist()
     actuals += target.detach().cpu().numpy().tolist()
     filename.append(file)
-filename = [decoder_tokenizer[str(file.detach().numpy().tolist())] for file in filename[0]]
+filename = torch.cat(filename)
+filename = [decoder_tokenizer[str(file.detach().numpy().tolist())] for file in filename]
 
 results = pd.DataFrame({
     'filename': filename,
     'actuals': actuals,
     'predicted': predicted
 })
-results['participant'] = results['filename'].str.split('-').str[1].str.extract('([0-9]+)', expand=False)
+results['participant'] = results['filename'].apply(lambda x: x.split('/')[-1].split('-')[0:2])#.str.extract('([0-9]+)', expand=False)#.astype(int)
+results['participant'] = results['participant'].apply(lambda x: x[0] + '_' + str(get_digits(x[1])))
 results['predicted_disorder'] = np.where(results['predicted']>0.5, 1, 0)
-aggregated = results.groupby(by=['participant', 'actuals']).agg({'predicted_disorder': ['sum', 'count'], 'predicted': ['mean', 'median', 'min', 'max', 'std']})
+aggregated = results.groupby(by=['participant', 'actuals'], as_index=False).agg({'predicted_disorder': ['sum', 'count'], 'predicted': ['mean', 'median', 'min', 'max', 'std']}).droplevel(axis=1, level=0).reset_index(drop=True)
+aggregated['pct'] = round(aggregated['sum'] / aggregated['count'], 4)
 print(aggregated)
 
 y_pred = [round(elem) for elem in predicted]
