@@ -90,7 +90,7 @@ class SpeechDisorderDataset:
 
     def __init__(self,
                  files: list,
-                 encoding_lookup: dict = None,
+                 encoding_lookup: list = None,
                  split: str = 'test',
                  sample_rate: int = 16000,
                  ext: str = 'wav',
@@ -108,7 +108,7 @@ class SpeechDisorderDataset:
     :param scale:
     """
 
-        self.encoding_lookup = encoding_lookup
+        self.encoding_lookup, self.decoding_lookup = encoding_lookup
         self.sample_rate = sample_rate
         self.duration = signal_length
         self.signal_length = math.floor(signal_length * self.sample_rate)
@@ -175,7 +175,7 @@ class SpeechDisorderDataset:
         torch.save(tx, path.join(self.cache_dir, 'tx.pt'))
         torch.save(tz, path.join(self.cache_dir, 'tz.pt'))
         torch.save(ty, path.join(self.cache_dir, 'ty.pt'))
-        torch.save(self.encoding_lookup, path.join(self.cache_dir, 'tokenizer.pt'))
+        torch.save([self.encoding_lookup, self.decoding_lookup], path.join(self.cache_dir, 'tokenizer.pt'))
 
         return [tx, tz], ty
 

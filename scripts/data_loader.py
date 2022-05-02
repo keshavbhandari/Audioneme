@@ -93,11 +93,11 @@ if load_saved_data:
             zip_ref.extractall(dst)
         # !rm / content / Speech_Disorder.zip
 
-train_set = SpeechDisorderDataset(files=train_files, encoding_lookup=task_numbered, split='train',
+train_set = SpeechDisorderDataset(files=train_files, encoding_lookup=[task_numbered, numbered_task], split='train',
                                   sample_rate=orig_sample_rate, ext='wav', cache_dir=DATA_DIR)
-val_set = SpeechDisorderDataset(files=val_files, encoding_lookup=task_numbered, split='val',
+val_set = SpeechDisorderDataset(files=val_files, encoding_lookup=[task_numbered, numbered_task], split='val',
                                 sample_rate=orig_sample_rate, ext='wav', cache_dir=DATA_DIR)
-test_set = SpeechDisorderDataset(files=test_files, encoding_lookup=task_numbered, split='test',
+test_set = SpeechDisorderDataset(files=test_files, encoding_lookup=[task_numbered, numbered_task], split='test',
                                  sample_rate=orig_sample_rate, ext='wav', cache_dir=DATA_DIR)
 
 if copy_files_as_zip:

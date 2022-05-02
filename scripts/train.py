@@ -111,7 +111,7 @@ def test(test_loader, model, device, epoch):
         counter += 1
 
         data, file = data
-        data, = data.to(device)
+        data = data.to(device)
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
