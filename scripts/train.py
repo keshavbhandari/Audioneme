@@ -34,7 +34,8 @@ def train(train_loader, model, device, epoch, log_interval, accum_iter=1):
     for batch_idx, (data, target) in enumerate(train_loader):
         counter += 1
 
-        data, _ = data.to(device)
+        data, file = data
+        data = data.to(device)
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
@@ -78,7 +79,8 @@ def validate(val_loader, model, device, epoch):
     for data, target in val_loader:
         counter += 1
 
-        data, _ = data.to(device)
+        data, file = data
+        data = data.to(device)
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
@@ -108,7 +110,8 @@ def test(test_loader, model, device, epoch):
     for data, target in test_loader:
         counter += 1
 
-        data, _ = data.to(device)
+        data, file = data
+        data, = data.to(device)
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
@@ -197,7 +200,8 @@ actuals = []
 predicted = []
 filename = []
 for i, (data, target) in enumerate(test_loader):
-    data, file = data.to(device)
+    data, file = data
+    data = data.to(device)
     target = target.to(device)
     best_model = best_model.to(device)
     output = best_model(data)
