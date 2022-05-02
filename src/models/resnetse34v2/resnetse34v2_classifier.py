@@ -1,6 +1,5 @@
 from torch import nn
 
-
 class ResNetSE34V2_Classification(nn.Module):
     def __init__(self, pretrained_model):
         '''config[-1] will be the output sequence length'''
@@ -18,9 +17,7 @@ class ResNetSE34V2_Classification(nn.Module):
         )
 
     def forward(self, x):
-        audio = x[0]
-        file = x[1]
-        audio = audio.squeeze(1)
-        audio = self.encoder(audio)
-        audio = self.classifier(audio)
-        return audio, file
+        x = x.squeeze(1)
+        x = self.encoder(x)
+        x = self.classifier(x)
+        return x

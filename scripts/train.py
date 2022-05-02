@@ -34,11 +34,11 @@ def train(train_loader, model, device, epoch, log_interval, accum_iter=1):
     for batch_idx, (data, target) in enumerate(train_loader):
         counter += 1
 
-        data = data.to(device)
+        data, _ = data.to(device)
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output, _ = model(data)
+        output = model(data)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -78,11 +78,11 @@ def validate(val_loader, model, device, epoch):
     for data, target in val_loader:
         counter += 1
 
-        data = data.to(device)
+        data, _ = data.to(device)
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output, _ = model(data)
+        output = model(data)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -108,11 +108,11 @@ def test(test_loader, model, device, epoch):
     for data, target in test_loader:
         counter += 1
 
-        data = data.to(device)
+        data, _ = data.to(device)
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output, _ = model(data)
+        output = model(data)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -197,10 +197,10 @@ actuals = []
 predicted = []
 filename = []
 for i, (data, target) in enumerate(test_loader):
-    data = data.to(device)
+    data, file = data.to(device)
     target = target.to(device)
     best_model = best_model.to(device)
-    output, file = best_model(data)
+    output = best_model(data)
     output = torch.sigmoid(output)
     pred = torch.squeeze(output, -1)
     predicted += pred.detach().cpu().numpy().tolist()
