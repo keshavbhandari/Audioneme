@@ -43,7 +43,7 @@ def get_speaker_files(files):
             a = i.lower().split('/')[-1].split('-')[0:2]
             a = a[0] + '_' + str(get_digits(a[1]))
 
-            utterance_dict[i] = get_digits(a)
+            utterance_dict[i] = a #get_digits(a)
         except:
             print("Files skipped", n, i)
 
