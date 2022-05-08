@@ -63,13 +63,13 @@ def collate_fn(batch, dataset, augmentation):
 
     # Gather in lists, and encode labels as indices
     for [waveform, encoded_file], label in batch:
-        tensors += [t(waveform).squeeze(1)]
+        tensors += [t(waveform.unsqueeze(0)).squeeze(1)]
         targets += [label]
         file_tensor += [encoded_file]
 
     # Group the list of tensors into a batched tensor
-    # tensors = pad_sequence(tensors)
-    tensors = torch.stack(tensors)
+    tensors = pad_sequence(tensors)
+    # tensors = torch.stack(tensors)
     targets = torch.stack(targets)
     file_tensor = torch.stack(file_tensor)
 

@@ -39,7 +39,10 @@ def get_speaker_files(files):
 
     for n, i in enumerate(files):
         try:
-            a = i.lower().split('/')[-1].strip('.wav').split('-')[1]
+            # a = i.lower().split('/')[-1].strip('.wav').split('-')[1]
+            a = i.lower().split('/')[-1].split('-')[0:2]
+            a = a[0] + '_' + str(get_digits(a[1]))
+
             utterance_dict[i] = get_digits(a)
         except:
             print("Files skipped", n, i)
@@ -137,14 +140,15 @@ class SpeechDisorderDataset:
         else:
             [self.tx, self.tz], self.ty = self._build_cache()
 
-        self.n_classes = torch.unique(self.ty).shape[-1]
+        self.n_classes = 2 #torch.unique(self.ty).shape[-1]
 
     def _build_cache(self):
 
         # cache dataset in tensor form
-        tx = torch.zeros((len(self.audio_list), 1, self.signal_length))
-        ty = torch.zeros(len(self.audio_list), dtype=torch.long)
-        tz = torch.zeros(len(self.audio_list), dtype=torch.long)
+        # tx = torch.zeros((len(self.audio_list), 1, self.signal_length))
+        # ty = torch.zeros(len(self.audio_list), dtype=torch.long)
+        # tz = torch.zeros(len(self.audio_list), dtype=torch.long)
+        tx, ty, tz = [], [], []
 
         pbar = tqdm(self.audio_list,
                     total=len(self.audio_list))
@@ -154,23 +158,27 @@ class SpeechDisorderDataset:
             waveform, _ = li.load(audio_fn,
                                   mono=True,
                                   sr=self.sample_rate,
-                                  duration=self.duration)
+                                  duration=None) #self.duration
 
             waveform = torch.from_numpy(waveform)
 
-            tx[i, :, :waveform.shape[-1]] = waveform
+            # tx[i, :, :waveform.shape[-1]] = waveform
+            tx.append(waveform)
 
             if 'non-disordered' in str(audio_fn).lower():
-                ty[i] = 0
+                # ty[i] = 0
+                ty.append(torch.zeros(1))
             else:
-                ty[i] = 1
+                # ty[i] = 1
+                ty.append(torch.ones(1))
 
             s = get_task_stringmatch(str(audio_fn))
             if s in self.encoding_lookup.keys():
-                tz[i] = self.encoding_lookup[s]
+                # tz[i] = self.encoding_lookup[s]
+                tz.append(torch.tensor(self.encoding_lookup[s]))
 
         # apply scale
-        tx *= self.scale
+        # tx *= self.scale
 
         torch.save(tx, path.join(self.cache_dir, 'tx.pt'))
         torch.save(tz, path.join(self.cache_dir, 'tz.pt'))
@@ -180,7 +188,8 @@ class SpeechDisorderDataset:
         return [tx, tz], ty
 
     def __len__(self):
-        return self.tx.shape[0]
+        # return self.tx.shape[0]
+        return len(self.tx)
 
     def __getitem__(self, idx):
         return [self.tx[idx], self.tz[idx]], self.ty[idx]

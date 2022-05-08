@@ -216,9 +216,10 @@ for i, (data, target) in enumerate(test_loader):
     pred = torch.squeeze(output, -1)
     predicted += pred.detach().cpu().numpy().tolist()
     actuals += target.detach().cpu().numpy().tolist()
-    filename.append(file)
-filename = torch.cat(filename)
-filename = [decoder_tokenizer[str(file.detach().numpy().tolist())] for file in filename]
+    # filename.append(file)
+    filename += file.detach().cpu().numpy().tolist()
+# filename = torch.cat(filename)
+filename = [decoder_tokenizer[str(file)] for file in filename]
 
 results = pd.DataFrame({
     'filename': filename,
