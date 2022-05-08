@@ -44,6 +44,13 @@ test_transform = ComposeMany(
 )
 
 
+def pad_sequence(batch):
+    # Make all tensor in a batch the same length by padding with zeros
+    batch = [item.t() for item in batch]
+    batch = torch.nn.utils.rnn.pad_sequence(batch, batch_first=True, padding_value=0.)
+    return batch.permute(0, 2, 1)
+
+
 def collate_fn(batch, dataset, augmentation):
     # A data tuple has the form:
     # waveform, utterance_type, label
