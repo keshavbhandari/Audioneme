@@ -50,7 +50,7 @@ def train(train_loader, model, device, epoch, log_interval, accum_iter=1):
         loss = loss / accum_iter
 
         # pred = get_likely_index(output)
-        correct += number_of_correct(output.squeeze(-1).round(), target)
+        correct += number_of_correct(output.squeeze(-1).round(), target.squeeze(-1))
 
         loss.backward()
         # weights update
@@ -93,7 +93,7 @@ def validate(val_loader, model, device, epoch):
         loss = F.binary_cross_entropy(output, target.reshape(-1, 1).to(torch.float32))  # output --> (batch x n_output)
 
         # pred = get_likely_index(output)
-        correct += number_of_correct(output.squeeze(-1).round(), target)
+        correct += number_of_correct(output.squeeze(-1).round(), target.squeeze(-1))
 
         # update progress bar
         pbar.update(pbar_update)
@@ -125,7 +125,7 @@ def test(test_loader, model, device, epoch):
             torch.float32))  # output.squeeze() --> (batch x n_output)
 
         # pred = get_likely_index(output)
-        correct += number_of_correct(output.squeeze(-1).round(), target)
+        correct += number_of_correct(output.squeeze(-1).round(), target.squeeze(-1))
 
         # update progress bar
         pbar.update(pbar_update)
@@ -215,24 +215,15 @@ for i, (data, target) in enumerate(test_loader):
     output = torch.sigmoid(output)
     pred = torch.squeeze(output, -1)
     predicted += pred.detach().cpu().numpy().tolist()
-    actuals += target.detach().cpu().numpy().tolist()
+    actuals += target.squeeze(-1).detach().cpu().numpy().tolist()
     # filename.append(file)
     filename += file.detach().cpu().numpy().tolist()
 # filename = torch.cat(filename)
 filename = [decoder_tokenizer[str(file)] for file in filename]
 
-results = pd.DataFrame({
-    'filename': filename,
-    'actuals': actuals,
-    'predicted': predicted
-})
-results['participant'] = results['filename'].apply(lambda x: x.split('/')[-1].split('-')[0:2])#.str.extract('([0-9]+)', expand=False)#.astype(int)
-results['participant'] = results['participant'].apply(lambda x: x[0] + '_' + str(get_digits(x[1])))
-results['predicted_disorder'] = np.where(results['predicted']>0.5, 1, 0)
-aggregated = results.groupby(by=['participant', 'actuals'], as_index=False).agg({'predicted_disorder': ['sum', 'count'], 'predicted': ['mean', 'median', 'min', 'max', 'std']}).droplevel(axis=1, level=0).reset_index(drop=True)
-aggregated['pct'] = round(aggregated['sum'] / aggregated['count'], 4)
-print(aggregated)
-
+################################################
+print("*** Utterance Level Accuracy Report: ***")
+################################################
 y_pred = [round(elem) for elem in predicted]
 print(classification_report(actuals, y_pred))
 
@@ -253,3 +244,36 @@ print('sensitivity : ', sensitivity1)
 plt.plot(train_loss);
 plt.plot(val_loss);
 plt.title("training and val loss");
+
+################################################
+print("*** Speaker Level Accuracy Report: ***")
+################################################
+
+results = pd.DataFrame({
+    'filename': filename,
+    'actuals': actuals,
+    'predicted': predicted
+})
+results['participant'] = results['filename'].apply(lambda x: x.split('/')[-1].split('-')[0:2])#.str.extract('([0-9]+)', expand=False)#.astype(int)
+results['participant'] = results['participant'].apply(lambda x: x[0] + '_' + str(get_digits(x[1])))
+results['predicted_disorder'] = np.where(results['predicted']>0.5, 1, 0)
+aggregated = results.groupby(by=['participant', 'actuals'], as_index=False).agg({'predicted_disorder': ['sum', 'count'], 'predicted': ['mean', 'median', 'min', 'max', 'std']})#.reset_index(drop=False)
+aggregated.columns = ["_".join(a) for a in aggregated.columns.to_flat_index()]
+aggregated['pct'] = round(aggregated['predicted_disorder_sum'] / aggregated['predicted_disorder_count'], 4)
+aggregated['speech_disorder'] = np.where(aggregated['predicted_median']>0.5, 1.0, 0.0)
+print(aggregated)
+print(classification_report(aggregated['actuals_'], aggregated['speech_disorder']))
+
+cm1 = confusion_matrix(aggregated['actuals_'], aggregated['speech_disorder'])
+print('Confusion Matrix : \n', cm1)
+
+total1=sum(sum(cm1))
+#####from confusion matrix calculate accuracy
+accuracy1=(cm1[0,0]+cm1[1,1])/total1
+print ('Accuracy : ', accuracy1)
+
+specificity1 = cm1[0,0]/(cm1[0,0]+cm1[0,1])
+print('specificity : ', specificity1 )
+
+sensitivity1 = cm1[1,1]/(cm1[1,0]+cm1[1,1])
+print('sensitivity : ', sensitivity1)
