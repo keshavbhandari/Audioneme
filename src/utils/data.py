@@ -34,7 +34,7 @@ def get_digits(string):
     return int(''.join(digits))
 
 
-def get_speaker_files(files):
+def get_speaker_files(files, split_ratio={'train': 0.8, 'val': 0.1}, external_files=[]):
     utterance_dict = dict()
 
     for n, i in enumerate(files):
@@ -49,7 +49,7 @@ def get_speaker_files(files):
 
     speakers = list(set(utterance_dict.values()))
     random.shuffle(speakers)
-    train_size, val_size = int(0.8 * len(speakers)), int(0.1 * len(speakers))
+    train_size, val_size = int(split_ratio['train'] * len(speakers)), int(split_ratio['val'] * len(speakers))
 
     train_speakers = speakers[0: train_size]
     validate_speakers = speakers[train_size: train_size + val_size]
@@ -66,6 +66,11 @@ def get_speaker_files(files):
             test.append(key)
 
     print(f'Train Size: {len(train)}, Val Size: {len(validate)}, Test Size: {len(test)}')
+
+    if len(external_files) > 0:
+        train = train + external_files
+        print(f'Train Size After Adding External Files: {len(train)}, Val Size: {len(validate)}, Test Size: {len(test)}')
+
     return train, validate, test
 
 
@@ -114,6 +119,7 @@ class SpeechDisorderDataset:
         self.encoding_lookup, self.decoding_lookup = encoding_lookup
         self.sample_rate = sample_rate
         self.duration = signal_length
+        self.duration_samples = signal_length * sample_rate
         self.signal_length = math.floor(signal_length * self.sample_rate)
         self.scale = scale
         self.ext = ext
@@ -160,6 +166,8 @@ class SpeechDisorderDataset:
                                   sr=self.sample_rate,
                                   duration=None) #self.duration
 
+            if len(waveform) > self.duration_samples:
+                waveform = waveform[0:self.duration_samples]
             waveform = torch.from_numpy(waveform)
 
             # tx[i, :, :waveform.shape[-1]] = waveform

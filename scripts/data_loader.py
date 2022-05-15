@@ -21,7 +21,7 @@ from src.utils.filesystem import make_zipfile
 from src.utils.filesystem import get_audio_files
 from src.utils.data import get_tasks_encoded, get_utterance_files, get_speaker_files
 from src.utils.data import SpeechDisorderDataset
-from configs.constants import *
+from configs.dataset_configs import *
 
 train_transform = ComposeMany(
     [
@@ -76,21 +76,10 @@ def collate_fn(batch, dataset, augmentation):
     return (tensors, file_tensor), targets
 
 
-raw_wav_files = get_audio_files(wd=RAW_DIR)
-task_numbered, numbered_task = get_tasks_encoded(raw_wav_files)
-if build_speaker_level_dataset:
-    train_files, val_files, test_files = get_speaker_files(raw_wav_files)
-else:
-    train_files, val_files, test_files = get_utterance_files(raw_wav_files)
-
-if run_test:
-    train_files = train_files[0:100]
-    val_files = val_files[0:10]
-    test_files = test_files[0:10]
-
 # Load saved zip file if set to True
 src = ZIP_LOC_DRIVE
 dst = ZIP_LOC
+
 if load_saved_data:
     data_dir_exists = os.path.isdir(DATA_DIR)
     if data_dir_exists == False:
@@ -99,6 +88,27 @@ if load_saved_data:
         with zipfile.ZipFile(dst + 'Speech_Disorder.zip', 'r') as zip_ref:
             zip_ref.extractall(dst)
         # !rm / content / Speech_Disorder.zip
+    train_files, val_files, test_files = [], [], []
+else:
+    raw_wav_files = get_audio_files(wd=RAW_DIR)
+    external_wav_files = get_audio_files(wd=EXTERNAL_DATA_DIR)
+    task_numbered, numbered_task = get_tasks_encoded(raw_wav_files)
+    if build_speaker_level_dataset:
+        if len(external_wav_files) > 0:
+            train_files, val_files, test_files = get_speaker_files(raw_wav_files,
+                                                                   split_ratio={'train': 0.6, 'val': 0.1},
+                                                                   external_files=external_wav_files)
+        else:
+            train_files, val_files, test_files = get_speaker_files(raw_wav_files,
+                                                                   split_ratio={'train': 0.8, 'val': 0.1},
+                                                                   external_files=[])
+    else:
+        train_files, val_files, test_files = get_utterance_files(raw_wav_files)
+
+    if run_test:
+        train_files = train_files[0:100]
+        val_files = val_files[0:10]
+        test_files = test_files[0:10]
 
 train_set = SpeechDisorderDataset(files=train_files, encoding_lookup=[task_numbered, numbered_task], split='train',
                                   sample_rate=orig_sample_rate, ext='wav', cache_dir=DATA_DIR)

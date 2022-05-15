@@ -16,6 +16,7 @@ from src.models.resnetse34v2.resnetse34v2 import ResNetSE34V2
 from src.models.resnetse34v2.resnetse34v2_classifier import ResNetSE34V2_Classification
 from src.training.training_functions import count_parameters, EarlyStopping
 from configs.constants import *
+from configs.dataset_configs import *
 
 
 def number_of_correct(pred, target):
