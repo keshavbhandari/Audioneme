@@ -119,8 +119,7 @@ class SpeechDisorderDataset:
         self.encoding_lookup, self.decoding_lookup = encoding_lookup
         self.sample_rate = sample_rate
         self.duration = signal_length
-        self.duration_samples = signal_length * sample_rate
-        self.signal_length = math.floor(signal_length * self.sample_rate)
+        self.signal_length = math.floor(signal_length * sample_rate)
         self.scale = scale
         self.ext = ext
 
@@ -166,8 +165,8 @@ class SpeechDisorderDataset:
                                   sr=self.sample_rate,
                                   duration=None) #self.duration
 
-            if len(waveform) > self.duration_samples:
-                waveform = waveform[0:self.duration_samples]
+            if len(waveform) > self.signal_length:
+                waveform = waveform[0:self.signal_length]
             waveform = torch.from_numpy(waveform)
 
             # tx[i, :, :waveform.shape[-1]] = waveform
