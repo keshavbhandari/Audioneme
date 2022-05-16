@@ -89,10 +89,11 @@ if load_saved_data:
             zip_ref.extractall(dst)
         # !rm / content / Speech_Disorder.zip
     train_files, val_files, test_files = [], [], []
+    task_numbered, numbered_task = None, None
 else:
     raw_wav_files = get_audio_files(wd=RAW_DIR)
     external_wav_files = get_audio_files(wd=EXTERNAL_DATA_DIR)
-    task_numbered, numbered_task = get_tasks_encoded(raw_wav_files)
+    task_numbered, numbered_task = get_tasks_encoded(raw_wav_files + external_wav_files)
     if build_speaker_level_dataset:
         if len(external_wav_files) > 0:
             train_files, val_files, test_files = get_speaker_files(raw_wav_files,
