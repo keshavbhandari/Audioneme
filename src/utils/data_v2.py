@@ -116,7 +116,7 @@ def encoder(text2id, string):
         token = text2id[char]
         tokens.append(token)
 
-    tokens = torch.tensor(tokens)
+    # tokens = torch.tensor(tokens)
     return tokens
 
 
@@ -167,7 +167,7 @@ class SpeechDisorderDataset:
     """
 
         self.encoding_lookup, self.decoding_lookup = encoding_lookup
-        self.transcription_tokenizer = transcription_tokenizer
+        self.transcription_decoding_lookup, self.transcription_encoding_lookup = transcription_tokenizer
         self.sample_rate = sample_rate
         self.duration = signal_duration
         self.signal_length = math.floor(signal_duration * sample_rate)
@@ -210,13 +210,13 @@ class SpeechDisorderDataset:
     def _build_cache(self):
 
         tx, tt, ty, tz = [], [], [], []
-
         pbar = tqdm(self.meta_data.iterrows(),
                     total=len(self.meta_data))
         for i, row in enumerate(pbar):
+            row = row[1]
             audio_fn = row['filepath']
             transcription_text = row['transcription']
-            pbar.set_description(f'Loading Speech Disorder Dataset ({path.basename(audio_fn)})')
+            # pbar.set_description(f'Loading Speech Disorder Dataset ({path.basename(audio_fn)})')
             waveform, _ = li.load(audio_fn,
                                   mono=True,
                                   sr=self.sample_rate,
@@ -237,7 +237,7 @@ class SpeechDisorderDataset:
             s = str(audio_fn).lower()
             tz.append(torch.tensor(self.encoding_lookup[s]))
 
-            transcription_token = self.transcription_encoding_lookup(transcription_text)
+            transcription_token = encoder(self.transcription_encoding_lookup, transcription_text)
             tt.append(torch.tensor(transcription_token))
 
         # apply scale
