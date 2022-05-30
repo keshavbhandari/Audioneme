@@ -101,6 +101,7 @@ if load_saved_data:
     train_files, val_files, test_files = [], [], []
     task_numbered, numbered_task = None, None
     id2text, text2id = None, None
+    train_speakers, validate_speakers, test_speakers = None, None, None
 else:
     transcription_data = pd.read_csv(transcription_path, encoding="ISO-8859-1")
     transcription_data['site_task_code'] = transcription_data['Site'].str.lower() + '_' + transcription_data[

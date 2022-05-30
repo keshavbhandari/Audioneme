@@ -200,8 +200,8 @@ class SpeechDisorderDataset:
             self.decoding_lookup = tokenizer['decoder']
 
             self.transcription_tokenizer = torch.load(path.join(self.cache_dir, 'transcription_tokenizer.pt'))
-            self.transcription_encoding_lookup = transcription_tokenizer['encoder']
-            self.transcription_decoding_lookup = transcription_tokenizer['decoder']
+            self.transcription_encoding_lookup = self.transcription_tokenizer['encoder']
+            self.transcription_decoding_lookup = self.transcription_tokenizer['decoder']
         else:
             [self.tx, self.tt, self.tz], self.ty = self._build_cache()
 
