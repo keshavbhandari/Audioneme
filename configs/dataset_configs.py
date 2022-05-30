@@ -7,6 +7,7 @@ ZIP_LOC_DRIVE = '/content/drive/MyDrive/Research/Speech_Disorder/Saved/Speech_Di
 ZIP_LOC = '/content/Audioneme/'
 DATA_DIR = Path('.').resolve() / 'data'
 EXTERNAL_DATA_DIR = '/content/drive/MyDrive/Research/Speech_Disorder/UltraSuite/'
+TRANSCRIPTIONS_FILEPATH = "/content/drive/MyDrive/Research/Speech_Disorder/Speech Exemplars and Evaluation Database/Transcription_Data.csv"
 
 build_speaker_level_dataset = True
 
