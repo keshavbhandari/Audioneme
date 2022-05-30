@@ -246,7 +246,7 @@ class SpeechDisorderDataset:
         torch.save(tx, path.join(self.cache_dir, 'tx.pt'))
         torch.save(tz, path.join(self.cache_dir, 'tz.pt'))
         torch.save(ty, path.join(self.cache_dir, 'ty.pt'))
-        torch.save(ty, path.join(self.cache_dir, 'ty.pt'))
+        torch.save(tt, path.join(self.cache_dir, 'tt.pt'))
         torch.save({'encoder': self.encoding_lookup, 'decoder': self.decoding_lookup}, path.join(self.cache_dir, 'tokenizer.pt'))
         torch.save({'encoder': self.transcription_encoding_lookup, 'decoder': self.transcription_decoding_lookup}, path.join(self.cache_dir, 'transcription_tokenizer.pt'))
 
