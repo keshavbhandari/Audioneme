@@ -1,6 +1,5 @@
 import torch.nn.functional as F
 import torch.optim as optim
-# from torch.optim.swa_utils import AveragedModel, SWALR
 from tqdm import tqdm
 
 import matplotlib.pyplot as plt
@@ -12,13 +11,16 @@ import torchaudio
 
 from src.models.audiomer import AudiomerClassification as Audiomer
 from src.models.Wav2Vec.wav2vec import Wav2Vec_Classification
-from scripts.data_loader import train_loader, val_loader, test_loader
 from src.utils.data import get_digits
 from src.models.resnetse34v2.resnetse34v2 import ResNetSE34V2
 from src.models.resnetse34v2.resnetse34v2_classifier import ResNetSE34V2_Classification
 from src.training.training_functions import count_parameters, EarlyStopping
 from configs.constants import *
 from configs.dataset_configs import *
+if model_type == "resnet" or model_type == "audiomer":
+    from scripts.data_loader import train_loader, val_loader, test_loader
+else:
+    from scripts.data_loader_v2 import train_loader, val_loader, test_loader
 
 
 def number_of_correct(pred, target):
