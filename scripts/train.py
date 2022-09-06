@@ -8,8 +8,10 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 import numpy as np
+import torchaudio
 
 from src.models.audiomer import AudiomerClassification as Audiomer
+from src.models.Wav2Vec.wav2vec import Wav2Vec_Classification
 from scripts.data_loader import train_loader, val_loader, test_loader
 from src.utils.data import get_digits
 from src.models.resnetse34v2.resnetse34v2 import ResNetSE34V2
@@ -37,12 +39,13 @@ def train(train_loader, model, device, epoch, log_interval, accum_iter=1):
     for batch_idx, (data, target) in enumerate(train_loader):
         counter += 1
 
-        data, file = data
+        data, transcription, file = data
         data = data.to(device)
+        transcription = transcription.to(device).long()
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output = model(data)
+        output = model(data, transcription)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -82,12 +85,13 @@ def validate(val_loader, model, device, epoch):
     for data, target in val_loader:
         counter += 1
 
-        data, file = data
+        data, transcription, file = data
         data = data.to(device)
+        transcription = transcription.to(device).long()
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output = model(data)
+        output = model(data, transcription)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -113,12 +117,13 @@ def test(test_loader, model, device, epoch):
     for data, target in test_loader:
         counter += 1
 
-        data, file = data
+        data, transcription, file = data
         data = data.to(device)
+        transcription = transcription.to(device).long()
         target = target.to(device)
 
         # apply transform and model on whole batch directly on device
-        output = model(data)
+        output = model(data, transcription)
         output = torch.sigmoid(output)
 
         # negative log-likelihood for a tensor of size (batch x 1 x n_output)
@@ -157,14 +162,34 @@ if model_type == "audiomer":
             equal_strides=False
         ).to(device)
 
-else:
+elif model_type == "resnet":
     pretrained_model = ResNetSE34V2(n_bins=n_bins)
     # pretrained_model.load_state_dict(torch.load(PRETRAINED_ResnetSE34V2))
     model = ResNetSE34V2_Classification(pretrained_model).to(device)
+else:
+    transcription_tokenizer_path = DATA_DIR / 'train/transcription_tokenizer.pt'
+    transcription_tokenizer = torch.load(transcription_tokenizer_path)
+    transcription_encoder_tokenizer = transcription_tokenizer['encoder']
+    transcription_decoder_tokenizer = transcription_tokenizer['decoder']
+    bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
+    classifier = bundle.get_model()
+    unfrozen_layers = ['transformer.layers.8', 'transformer.layers.9', 'transformer.layers.10', 'transformer.layers.11',
+                       'aux']
 
-# for n, param in enumerate(model.parameters()):
-#     if n < 150:
-#         param.requires_grad = False
+    for name, param in classifier.named_parameters():
+        if any(ext in name for ext in unfrozen_layers):
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
+
+    for name, param in classifier.named_parameters():
+        print('name: ', name)
+        print(type(param))
+        print('param.shape: ', param.shape)
+        print('param.requires_grad: ', param.requires_grad)
+        print('=====')
+
+    model = Wav2Vec_Classification(classifier, vocab_size=len(transcription_encoder_tokenizer) + 1).to(device)
 
 count_parameters(model)
 
@@ -176,6 +201,7 @@ early_stopping = EarlyStopping(patience=early_stopping_rounds)
 
 pbar_update = round(1 / (len(train_loader) + len(val_loader)), 4)
 train_loss, val_loss, test_loss = [], [], []
+model_filename = 'speech_disorder.pth'
 
 with tqdm(total=n_epoch) as pbar:
     for epoch in range(1, n_epoch + 1):
@@ -184,17 +210,17 @@ with tqdm(total=n_epoch) as pbar:
         # Save Best Model
         if epoch == 1:
             print('Saving model...')
-            torch.save(model, "speech_command_recognition.pth")
+            torch.save(model, model_filename)
         else:
             if val_loss[-1] < min(val_loss[:-1]):
                 print('Saving model...')
-                torch.save(model, "speech_command_recognition.pth")
+                torch.save(model, model_filename)
         # Early Stopping
         early_stopping(val_loss[-1])
         if early_stopping.early_stop:
             break
         scheduler.step()
-    best_model = torch.load("speech_command_recognition.pth")
+    best_model = torch.load(model_filename)
     test(test_loader, best_model, device, epoch)
 
 
@@ -204,15 +230,17 @@ encoder_tokenizer = tokenizer['encoder']
 decoder_tokenizer = tokenizer['decoder']
 
 # device = 'cpu'
+best_model = torch.load(model_filename)
+best_model = best_model.to(device)
 actuals = []
 predicted = []
 filename = []
 for i, (data, target) in enumerate(test_loader):
-    data, file = data
+    data, transcription, file = data
     data = data.to(device)
+    transcription = transcription.to(device).long()
     target = target.to(device)
-    best_model = best_model.to(device)
-    output = best_model(data)
+    output = best_model(data, transcription)
     output = torch.sigmoid(output)
     pred = torch.squeeze(output, -1)
     predicted += pred.detach().cpu().numpy().tolist()
@@ -242,9 +270,9 @@ print('specificity : ', specificity1 )
 sensitivity1 = cm1[1,1]/(cm1[1,0]+cm1[1,1])
 print('sensitivity : ', sensitivity1)
 
-plt.plot(train_loss);
-plt.plot(val_loss);
-plt.title("training and val loss");
+# plt.plot(train_loss);
+# plt.plot(val_loss);
+# plt.title("training and val loss");
 
 ################################################
 print("*** Speaker Level Accuracy Report: ***")
@@ -261,7 +289,7 @@ results['predicted_disorder'] = np.where(results['predicted']>0.5, 1, 0)
 aggregated = results.groupby(by=['participant', 'actuals'], as_index=False).agg({'predicted_disorder': ['sum', 'count'], 'predicted': ['mean', 'median', 'min', 'max', 'std']})#.reset_index(drop=False)
 aggregated.columns = ["_".join(a) for a in aggregated.columns.to_flat_index()]
 aggregated['pct'] = round(aggregated['predicted_disorder_sum'] / aggregated['predicted_disorder_count'], 4)
-aggregated['speech_disorder'] = np.where(aggregated['predicted_median']>0.5, 1.0, 0.0)
+aggregated['speech_disorder'] = np.where(aggregated['pct']>0.25, 1.0, 0.0)
 print(aggregated)
 print(classification_report(aggregated['actuals_'], aggregated['speech_disorder']))
 
