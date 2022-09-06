@@ -1,5 +1,6 @@
 # Audioneme
-AI model for speech disorder detection
+AI model for child speech disorder detection.
+We finetune wav2vec2 for this binary classification task.
 
 <h2 id="install">Installation</h2>
 
@@ -29,11 +30,21 @@ pip install -e .
 <h3 id="usage-data">Loading Data</h3>
 
 We provide simple dataset wrappers in `src.data`. After [downloading](#install), datasets can be used just as any typical PyTorch Dataset:
+Unfortunately, data cannot be shared as it is not public yet.
 
 ```python
 from scripts.data_loader import train_loader, val_loader, test_loader
 
+# Audio Data, Transcription, Filename, Binary Target
 for batch_idx, (data, target) in enumerate(train_loader):
-    print(data.shape, target.shape)
+    print(data[0].shape, data[1].shape, data[2].shape, target.shape)
     break
+```
+
+<h3 id="usage-data">Train Model</h3>
+
+Train the speech recognition model on wav2vec2. Check configs first to ensure parameters and model type is correct.
+
+```commandline
+python scripts.train.py
 ```
