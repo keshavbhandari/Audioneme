@@ -29,8 +29,7 @@ pip install -e .
 
 <h3 id="usage-data">Loading Data</h3>
 
-We provide simple dataset wrappers in `src.data`. After [downloading](#install), datasets can be used just as any typical PyTorch Dataset:
-Unfortunately, data cannot be shared as it is not public yet.
+Unfortunately, data cannot be shared as it is not public yet. However, this framework can be used on any speech dataset. The data loader should spit out audio signal, encoded transcription of the audio, encoded filename (used for further analysis) and a binary target.
 
 ```python
 from scripts.data_loader import train_loader, val_loader, test_loader
